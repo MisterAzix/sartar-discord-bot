@@ -47,7 +47,7 @@ bot.once('ready', async () => {
         if (stream) {
             if (!prevStream) {
                 const user = await apiClient.helix.users.getUserById(bot.userID);
-                const guild = bot.guilds.cache.get('544300325801164820');
+                const guild = bot.guilds.cache.get(config.GUILD_ID);
                 const channel = guild.channels.cache.get(bot.notifChannel);
 
                 clearInterval(activity);
