@@ -16,6 +16,7 @@ const clientSecret = config.TWITCH_CLIENT_SECRET;
 
 const authProvider = new ClientCredentialsAuthProvider(clientId, clientSecret);
 const apiClient = new ApiClient({ authProvider });
+bot.apiClient = apiClient;
 const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: 60 });
 
 bot.commands = new Collection();
