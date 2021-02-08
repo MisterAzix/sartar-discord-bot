@@ -32,12 +32,20 @@ bot.once('ready', async () => {
     await listener.listen();
     let prevStream = await apiClient.helix.streams.getStreamByUserId(userId);
 
+    bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
+    let activity = setInterval(() => {
+        bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
+    }, (1000*60*60));
+
     const subscription = await listener.subscribeToStreamChanges(userId, async stream => {
         if (stream) {
             if (!prevStream) {
                 const user = await apiClient.helix.users.getUserById(userId);
                 const guild = bot.guilds.cache.get('544300325801164820');
                 const channel = guild.channels.cache.get(config.NOTIFICATION_CHANNEL_ID);
+
+                clearInterval(activity);
+                bot.user.setActivity(stream.title, { type: "STREAMING", url: `https://www.twitch.tv/${user.displayName}` });
 
                 stream.getGame().then(g => {
                     let embed = {
@@ -80,6 +88,9 @@ bot.once('ready', async () => {
                 //console.log(`${stream.userDisplayName} just went live with title: ${stream.title}`);
             }
         } else {
+            activity = setInterval(() => {
+                bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
+            }, (1000*60*60));
             //const user = await apiClient.helix.users.getUserById(userId);
             //console.log(`${user.displayName} just went offline`);
         }
