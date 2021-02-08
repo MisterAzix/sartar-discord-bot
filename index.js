@@ -1,24 +1,29 @@
-const { Client } = require('discord.js');
+const { Client, Collection } = require('discord.js');
 const fs = require('fs');
-
 const { ApiClient } = require('twitch');
 const { ClientCredentialsAuthProvider } = require('twitch-auth');
 const { WebHookListener } = require('twitch-webhooks');
 const { NgrokAdapter } = require('twitch-webhooks-ngrok');
 
-const config = require('./_data/config.json');
 const bot = new Client;
+const config = require('./_data/config.json');
+bot.prefix = config.PREFIX;
+bot.userID = config.TWITCH_USER_ID;
+bot.notifChannel = config.NOTIFICATION_CHANNEL_ID;
 
-const prefix = config.PREFIX;
 const clientId = config.TWITCH_CLIENT_ID;
 const clientSecret = config.TWITCH_CLIENT_SECRET;
-const userId = config.TWITCH_USER_ID;
 
 const authProvider = new ClientCredentialsAuthProvider(clientId, clientSecret);
 const apiClient = new ApiClient({ authProvider });
-
 const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: 60 });
 
+bot.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    bot.commands.set(command.name, command);
+}
 
 bot.once('ready', async () => {
     console.log(`############################################################
@@ -30,19 +35,19 @@ bot.once('ready', async () => {
 ############################################################`);
 
     await listener.listen();
-    let prevStream = await apiClient.helix.streams.getStreamByUserId(userId);
+    let prevStream = await apiClient.helix.streams.getStreamByUserId(bot.userID);
 
     bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
     let activity = setInterval(() => {
         bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
-    }, (1000*60*60));
+    }, (1000 * 60 * 60));
 
-    const subscription = await listener.subscribeToStreamChanges(userId, async stream => {
+    const subscription = await listener.subscribeToStreamChanges(bot.userID, async stream => {
         if (stream) {
             if (!prevStream) {
-                const user = await apiClient.helix.users.getUserById(userId);
+                const user = await apiClient.helix.users.getUserById(bot.userID);
                 const guild = bot.guilds.cache.get('544300325801164820');
-                const channel = guild.channels.cache.get(config.NOTIFICATION_CHANNEL_ID);
+                const channel = guild.channels.cache.get(bot.notifChannel);
 
                 clearInterval(activity);
                 bot.user.setActivity(stream.title, { type: "STREAMING", url: `https://www.twitch.tv/${user.displayName}` });
@@ -90,8 +95,8 @@ bot.once('ready', async () => {
         } else {
             activity = setInterval(() => {
                 bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
-            }, (1000*60*60));
-            //const user = await apiClient.helix.users.getUserById(userId);
+            }, (1000 * 60 * 60));
+            //const user = await apiClient.helix.users.getUserById(bot.userID);
             //console.log(`${user.displayName} just went offline`);
         }
         prevStream = stream ?? null;
@@ -99,5 +104,16 @@ bot.once('ready', async () => {
 
 });
 
+bot.on('message', msg => {
+    if (!msg.content.startsWith(bot.prefix) || msg.author.bot) return;
+    if (msg.member.hasPermission('ADMINISTRATOR') || msg.user.id === config.DEV_ID) {
+        let args = msg.content.slice(bot.prefix.length).split(/ +/);
+        let command = args.shift().toLowerCase();
+
+        if (bot.commands.find(u => u.name === command)) {
+            bot.commands.get(command).execute(bot, msg, args);
+        }
+    }
+});
 
 bot.login(config.TOKEN);
