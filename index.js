@@ -17,7 +17,7 @@ const clientSecret = config.TWITCH_CLIENT_SECRET;
 const authProvider = new ClientCredentialsAuthProvider(clientId, clientSecret);
 const apiClient = new ApiClient({ authProvider });
 bot.apiClient = apiClient;
-const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: 60 });
+const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: config.HOOK_VALIDITY });
 
 bot.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
