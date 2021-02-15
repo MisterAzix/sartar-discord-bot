@@ -2,7 +2,7 @@ const { Client, Collection } = require('discord.js');
 const fs = require('fs');
 const { ApiClient } = require('twitch');
 const { ClientCredentialsAuthProvider } = require('twitch-auth');
-const { WebHookListener } = require('twitch-webhooks');
+const { ReverseProxyAdapter, WebHookListener } = require('twitch-webhooks');
 const { NgrokAdapter } = require('twitch-webhooks-ngrok');
 
 const bot = new Client;
@@ -17,7 +17,11 @@ const clientSecret = config.TWITCH_CLIENT_SECRET;
 const authProvider = new ClientCredentialsAuthProvider(clientId, clientSecret);
 const apiClient = new ApiClient({ authProvider });
 bot.apiClient = apiClient;
-const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: config.HOOK_VALIDITY });
+//const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: config.HOOK_VALIDITY });
+const listener = new WebHookListener(apiClient, new ReverseProxyAdapter({
+    hostName: 'localhost',
+    listenerPort: 8090
+}));
 
 bot.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
