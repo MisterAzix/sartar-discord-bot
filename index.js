@@ -19,8 +19,7 @@ const apiClient = new ApiClient({ authProvider });
 bot.apiClient = apiClient;
 //const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: config.HOOK_VALIDITY });
 const listener = new WebHookListener(apiClient, new ReverseProxyAdapter({
-    hostName: 'localhost',
-    listenerPort: 8090
+    hostName: 'maxencebreuilles.tech'
 }));
 
 bot.commands = new Collection();
