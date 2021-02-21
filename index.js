@@ -4,6 +4,7 @@ const { ApiClient } = require('twitch');
 const { ClientCredentialsAuthProvider } = require('twitch-auth');
 const { ReverseProxyAdapter, WebHookListener } = require('twitch-webhooks');
 const { NgrokAdapter } = require('twitch-webhooks-ngrok');
+const dayjs = require('dayjs');
 
 const bot = new Client;
 const config = require('./_data/config.json');
@@ -71,12 +72,7 @@ bot.once('ready', async () => {
                                 "name": "Viewers",
                                 "value": stream.viewers ?? 0,
                                 "inline": true
-                            }/* ,
-                        {
-                            "name": "Langue",
-                            "value": stream.language ?? 'FR',
-                            "inline": true
-                        } */
+                            }
                         ],
                         "author": {
                             "name": user.displayName,
@@ -94,14 +90,14 @@ bot.once('ready', async () => {
                     channel.send(`Hey @everyone ! **${user.displayName}** est maintenant en direct sur https://www.twitch.tv/${user.displayName} ! Allez y jeter un oeil !`, { embed: embed });
                 });
 
-                //console.log(`${stream.userDisplayName} just went live with title: ${stream.title}`);
+                console.log(`[${dayjs('HH:mm:ss')}] ${stream.userDisplayName} just went live with title: ${stream.title}`);
             }
         } else {
             activity = setInterval(() => {
                 bot.user.setActivity(`${bot.users.cache.size} Avengers`, { type: 'WATCHING' });
             }, (1000 * 60 * 60));
-            //const user = await apiClient.helix.users.getUserById(bot.userID);
-            //console.log(`${user.displayName} just went offline`);
+            const user = await apiClient.helix.users.getUserById(bot.userID);
+            console.log(`[${dayjs('HH:mm:ss')}] ${user.displayName} just went offline`);
         }
         prevStream = stream ?? null;
     });
