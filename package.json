@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "dayjs": "^1.10.4",
+    "discord.js": "^12.5.1",
+    "fs": "^0.0.1-security",
+    "twitch": "^4.4.9",
+    "twitch-webhooks": "^4.4.9",
+    "twitch-webhooks-ngrok": "^4.4.9"
+  }
+}
