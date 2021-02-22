@@ -21,7 +21,7 @@ bot.apiClient = apiClient;
 //const listener = new WebHookListener(apiClient, new NgrokAdapter(), { hookValidity: config.HOOK_VALIDITY });
 const listener = new WebHookListener(apiClient, new ReverseProxyAdapter({
     hostName: 'localhost',
-    listenerPort: 80
+    listenerPort: 8090
 }));
 
 bot.commands = new Collection();
